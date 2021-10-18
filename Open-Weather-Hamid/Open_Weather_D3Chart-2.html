@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 2px;
+}
+svg text {
+            fill: purple;
+            font: 11px sans-serif;
+            text-anchor: end;
+         }
+
+
+path { 
+    stroke:grey;
+    stroke-width: 2;
+    fill: none;
+}
+
+</style>
+<body>
+
+    <div> 
+        <h1> Weather Forecasting System</h1>
+        <p>Following chart will show the Temperature forecast of next 5-days of the Paris city.</p>
+    </div>
+
+<!-- load the d3.js library -->    	
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
+<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script>
+	//var arr = [];
+
+// set the dimensions and margins of the graph
+var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+// parse the date / time
+var parseTime = d3.timeParse("%d-%b-%y");
+
+// set the ranges
+var x = d3.scaleTime().range([0, width]);
+var y = d3.scaleLinear().range([height, 0]);
+debugger;
+// define the line
+var valueline = d3.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.value); });
+
+// append the svg obgect to the body of the page
+// appends a 'group' element to 'svg'
+// moves the 'group' element to the top left margin
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Get the data
+//d3.csv("data.csv", function(error, data) {
+d3.json ("https://api.openweathermap.org/data/2.5/forecast?q=Paris&appid=da45f32ccf162d2c6b6f1c72b533549a",  function (error, data) {
+  if (error) throw error;
+
+  // format the data
+//   data.forEach(function(d) {
+//       d.date = parseTime(d.date);
+//       d.close = +d.close;
+//   });
+
+
+	var arr = [];
+    for (i = 0 ; i <data.list.length; i = i + 8) {
+    arr.push({date: new Date (data.list[i].dt_txt), //date
+    value: +data.list [i].main.temp //convert string to number         
+    });   
+	}   
+	console.log(arr);
+	//data =arr;
+	
+  // Scale the range of the data
+  x.domain(d3.extent(arr, function(d) { return d.date; }));
+  //x.domain([d3.min(arr, function(d) { return d.date; }), d3.max(arr, function(d) { return d.date; })]);
+  y.domain([d3.min(arr, function(d) { return d.value; }), d3.max(arr, function(d) { return d.value; })]);
+
+  // Add the valueline path.
+  svg.append("path")
+      .data([arr])
+      .attr("class", "line")
+      .attr("d", valueline);
+
+  // Add the X Axis
+  svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
+
+  // Add the Y Axis
+  svg.append("g")
+	  .call(d3.axisLeft(y));
+	  
+	  svg.append("text")
+        .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.bottom) + ")")
+        .style("text-anchor", "middle")
+		.text("Date");
+		
+		svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left)
+        .attr("x",0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Temperture (Kelvin)");
+
+});
+
+</script>
+</body>
